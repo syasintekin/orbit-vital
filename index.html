@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ORBIT-VITAL</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#f2f5fb;--pn:#fff;--tx:#14203a;--mu:#5b6885;--ln:#d7deed;--ac:#4f5fd6;
+--g:#10b981;--b:#3b82f6;--y:#f59e0b;--r:#ef4444;box-sizing:border-box;
+padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a111f;--pn:#131c30;--tx:#e6ecf8;--mu:#93a0bf;--ln:#243252;--ac:#a5b4fc}}
+:root[data-theme="dark"]{--bg:#0a111f;--pn:#131c30;--tx:#e6ecf8;--mu:#93a0bf;--ln:#243252;--ac:#a5b4fc}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+header{padding:18px 20px 8px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+h1{font-size:22px;margin:0;font-weight:600;letter-spacing:.02em}
+h1 small{display:block;font-size:12px;color:var(--mu);font-weight:400;letter-spacing:0}
+h2{font-size:15px;margin:0 0 10px;font-weight:600;color:var(--ac)}
+.xp{font-size:13px;color:var(--mu);text-align:right}
+.bar{height:8px;border-radius:4px;background:var(--ln);overflow:hidden;margin-top:4px;min-width:160px}
+.bar i{display:block;height:100%;background:var(--ac);width:0;transition:width .4s}
+.modes{display:flex;gap:6px;flex-wrap:wrap;padding:0 20px 10px}
+.modes button{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:20px;padding:7px 13px;font:inherit;font-size:13px;cursor:pointer}
+.modes button[aria-pressed=true]{background:var(--ac);color:var(--bg);border-color:var(--ac)}
+#alert{margin:0 20px 10px;padding:10px 14px;border-radius:8px;background:var(--r);color:#fff;font-weight:600;display:none}
+#modeNote{margin:0 20px 12px;color:var(--mu);font-size:13px}
+main{display:grid;grid-template-columns:260px 1fr 320px;gap:14px;padding:0 20px 24px}
+@media(max-width:980px){main{grid-template-columns:1fr}}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:14px}
+svg.body{width:100%;max-height:430px}
+svg.body .reg{cursor:pointer;stroke:var(--tx);stroke-opacity:.35;stroke-width:1.5;transition:fill .3s}
+svg.body .reg:hover,svg.body .reg.sel{stroke-opacity:1;stroke-width:3}
+svg.body .reg:focus-visible{outline:none;stroke-opacity:1;stroke-width:3;stroke:var(--ac)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--mu);margin-top:8px}
+.legend span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;background:var(--c)}
+.pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;color:#fff}
+.m{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 0;border-top:1px solid var(--ln)}
+.m label{font-size:13px;color:var(--mu)}
+.m input[type=range]{grid-column:1;width:100%;accent-color:var(--ac)}
+.m output{grid-row:1;grid-column:2;font-weight:600}
+.m .pill{grid-row:2;grid-column:2}
+.info{display:grid;gap:8px;margin-top:10px;font-size:14px}
+.info b{color:var(--ac);font-weight:600}
+.col{display:grid;gap:14px;align-content:start}
+button.act{background:var(--ac);color:var(--bg);border:0;border-radius:8px;padding:8px 12px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;margin:4px 6px 4px 0}
+button.act.alt{background:transparent;color:var(--tx);border:1px solid var(--ln)}
+#rt{height:70px;border-radius:8px;display:grid;place-items:center;background:var(--ln);color:var(--tx);cursor:pointer;user-select:none;margin-top:6px;font-weight:600;text-align:center}
+video{width:100%;border-radius:8px;display:none;margin-top:8px}
+.task{display:flex;gap:8px;align-items:center;padding:5px 0;font-size:14px}
+.badges span{display:inline-block;margin:3px 4px 0 0;padding:3px 9px;border-radius:12px;border:1px solid var(--ln);font-size:12px;color:var(--mu)}
+.badges span.on{background:var(--ac);color:var(--bg);border-color:var(--ac)}
+.fine{font-size:12px;color:var(--mu);padding:0 20px 24px}
+.hl{display:flex;align-items:center;gap:12px}
+.burger{width:42px;height:42px;border-radius:8px;border:1px solid var(--ln);background:var(--pn);cursor:pointer;display:grid;place-content:center;gap:5px;padding:0}
+.burger i{display:block;width:20px;height:2px;background:var(--tx);border-radius:1px}
+#ovl{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+#ovl.open{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;left:0;bottom:0;width:min(440px,92vw);background:var(--pn);border-right:1px solid var(--ln);z-index:50;transform:translateX(-100%);visibility:hidden;transition:transform .25s,visibility .25s;overflow-y:auto;padding:calc(16px + env(safe-area-inset-top,0px)) 18px calc(20px + env(safe-area-inset-bottom,0px))}
+#drawer.open{transform:none;visibility:visible}
+.dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.dh h2{margin:0;font-size:18px}
+#docClose{background:none;border:1px solid var(--ln);color:var(--tx);border-radius:8px;width:36px;height:36px;font-size:18px;cursor:pointer}
+details{border-top:1px solid var(--ln);padding:10px 0}
+summary{cursor:pointer;font-weight:600;color:var(--ac)}
+details p,details li{font-size:14px;margin:6px 0}
+details ul,details ol{padding-left:20px;margin:6px 0}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.tile{border:2px solid var(--ln);border-radius:8px;padding:5px 4px;text-align:center;transition:border-color .3s}
+.tile span{display:block;font-size:11px;color:var(--mu)}.tile b{font-size:13px}
+.beat{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--r);animation:bt 1s infinite;margin-right:6px}
+@keyframes bt{0%,100%{transform:scale(1)}50%{transform:scale(1.5)}}
+@media(prefers-reduced-motion:reduce){.beat{animation:none}}
+select{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:7px;font:inherit;font-size:13px;width:100%;margin:4px 0 8px}
+.pk{border-top:1px solid var(--ln);padding:6px 0;font-size:13px}
+.pk code{display:block;word-break:break-all;color:var(--mu);font-size:12px;margin-top:2px}
+</style>
+</head>
+<body>
+<header>
+ <div class="hl"><button class="burger" id="menuBtn" type="button" aria-expanded="false" aria-controls="drawer"><i></i><i></i><i></i></button><h1>ORBIT-VITAL<small>Astronot sağlığı için çok modlu dijital ikiz ve karar destek</small></h1></div>
+ <button class="act alt" id="lang" type="button" aria-label="Language">EN</button><div class="xp"><span id="xpTxt">Biyo-Kalkan Puanı: 0</span><div class="bar"><i id="xpBar"></i></div></div>
+</header>
+<div class="modes" id="modes" role="group" aria-label="Görev ortamı"></div>
+<div id="alert" role="alert"></div>
+<p id="modeNote"></p>
+<main>
+ <section class="card">
+  <h2>Dijital ikiz</h2>
+  <svg class="body" viewBox="0 0 200 420" role="group" aria-label="Tıklanabilir insan vücudu">
+   <g id="reg">
+    <circle class="reg" id="r-head" data-r="head" cx="100" cy="46" r="34" tabindex="0" role="button" aria-label="Baş ve Beyin"/>
+    <ellipse class="reg" id="r-eyes" data-r="eyes" cx="100" cy="44" rx="22" ry="9" tabindex="0" role="button" aria-label="Gözler ve Optik Sinir" transform="translate(0,2)"/>
+    <path class="reg" id="r-lung" data-r="lung" d="M62 98h34v76H70q-12-30-8-76zM104 98h34q4 46-8 76h-26z" tabindex="0" role="button" aria-label="Akciğer ve Bağışıklık"/>
+    <path class="reg" id="r-heart" data-r="heart" d="M88 124q12-12 24 0 8 14-12 30-20-16-12-30z" tabindex="0" role="button" aria-label="Kalp ve Damar"/>
+    <path class="reg" id="r-msk" data-r="msk" d="M62 180h76l6 40-14 4v150h-26V240h-6v134H72V224l-14-4zM56 100l-30 90 14 6 28-70zM144 100l30 90-14 6-28-70z" tabindex="0" role="button" aria-label="Kas-İskelet ve Kemik"/>
+   </g>
+  </svg>
+  <div class="legend"><span style="--c:var(--g)">Optimal</span><span style="--c:var(--b)">Rutin ölçüm</span><span style="--c:var(--y)">Öz-bakım</span><span style="--c:var(--r)">Kritik</span></div>
+ </section>
+
+ <section class="card" aria-live="polite">
+  <h2 id="rName"></h2>
+  <span class="pill" id="rPill"></span>
+  <div id="metrics"></div>
+  <div class="info">
+   <div><b>Uzay riski:</b> <span id="rRisk"></span></div>
+   <div><b>Talimat:</b> <span id="rInstr"></span></div>
+   <div><b>Karşı tedbir:</b> <span id="rCounter"></span></div>
+  </div>
+ </section>
+
+ <div class="col">
+  <section class="card">
+   <h2>Veri girişi</h2>
+   <button class="act" id="btnSim">Bio-Monitor akışı: kapalı</button>
+   <button class="act alt" id="btnSPE">Güneş fırtınası simüle et</button>
+   <button class="act alt" id="btnCam">Kamera ile nabız (rPPG)</button>
+   <video id="vid" playsinline muted></video>
+   <canvas id="cv" width="48" height="48" hidden></canvas>
+   <div id="camMsg" class="fine" style="padding:6px 0 0"></div>
+   <div id="rt" role="button" tabindex="0">Reaksiyon testi için tıkla</div>
+   <div id="rtMsg" class="fine" style="padding:6px 0 0">Tepki süresi pasif nöro-bilişsel gösterge olarak kullanılır.</div>
+  </section>
+  <section class="card">
+   <h2>Giyilebilir kontrol elbisesi</h2>
+   <span class="pill" id="suitPill"></span><br>
+   <button class="act" id="btnSuit" type="button"></button>
+   <button class="act alt" id="btnSuitDemo" type="button"></button>
+   <div id="suitLive" hidden><div class="tiles" id="suitTiles"></div><div class="fine" id="suitMeta" style="padding:6px 0 0"></div></div>
+   <div id="suitMsg" class="fine" style="padding:6px 0 0" aria-live="polite"></div>
+   <div id="suitNote" class="fine" style="padding:6px 0 0">Standart Bluetooth sağlık servislerini (nabız, sıcaklık, SpO2) destekler. Chrome/Edge (bilgisayar ve Android) ve https gerekir.</div>
+  </section>
+  <section class="card">
+   <h2>Dünya’ya acil veri hattı</h2>
+   <div id="lkNote" class="fine" style="padding:0 0 8px"></div>
+   <label for="lkSel" id="lkSelL" style="font-size:13px;color:var(--mu)"></label>
+   <select id="lkSel"></select>
+   <label class="task"><input type="checkbox" id="lkBlk"> <span id="lkBlkL"></span></label>
+   <label class="task"><input type="checkbox" id="lkFast" checked> <span id="lkFastL"></span></label>
+   <button class="act" id="lkSend" type="button"></button>
+   <div id="lkStat" class="fine" style="padding:6px 0"></div>
+   <div id="lkLog" aria-live="polite"></div>
+  </section>
+  <section class="card">
+   <h2>Görev Sağlığı Kalkanı</h2>
+   <div id="tasks"></div>
+   <div class="badges" id="badges"></div>
+   <div id="marsLbl" style="margin-top:12px;font-size:13px">Mars’a Kadar Yürüyüş (anonim ekip ilerlemesi)</div>
+   <div class="bar"><i id="marsBar"></i></div>
+   <div class="fine" id="marsTxt" style="padding:4px 0 0"></div>
+  </section>
+ </div>
+</main>
+<p class="fine">Eğitim ve yarışma prototipidir; tıbbi cihaz değildir. Eşikler ve radyasyon verisi simülasyon amaçlıdır, tanı veya tedavi yerine geçmez.</p>
+
+<div id="ovl"></div>
+<aside id="drawer" aria-hidden="true" aria-labelledby="docTitle">
+ <div class="dh"><h2 id="docTitle"></h2><button id="docClose" type="button">✕</button></div>
+ <div id="docBody"></div>
+</aside>
+<script>
+const COL=['var(--g)','var(--b)','var(--y)','var(--r)'],LBL=['Optimal','Rutin ölçüm','Öz-bakım gerekli','Kritik'];
+const MODES={
+ leo:{n:'Uzay İstasyonu (LEO/ISS, 0 g)',note:'SANS, kemik kaybı ve mikrobiyal takibe odaklanır.',rad:[.05,.2],co2:[4000,7000]},
+ deep:{n:'Derin Uzay (Orion/Mars geçişi)',note:'CANS nötron verisi önceliklidir; güneş fırtınasında sığınak alarmı ve otonom tanı devreye girer.',rad:[.1,.5],co2:[4000,7000]},
+ surf:{n:'Gezegen/Ay Yüzeyi (1/6 g, 3/8 g)',note:'Vestibüler adaptasyon, regolit tozu (akciğer) ve EVA yorgunluğu izlenir.',rad:[.08,.3],co2:[3500,6000]},
+ rover:{n:'Basınçlı Rover / EVA',note:'DCS, hipoksi (SpO2), kıyafet içi CO2 ve EVARM radyasyon dozu gerçek zamanlı izlenir.',rad:[.05,.2],co2:[2500,4000]}};
+const lvl=(v,y,r,low)=>low?(v<r?3:v<y?2:0):(v>r?3:v>y?2:0);
+const M={
+ sleep:{n:'Uyku',u:'sa',v:7,a:0,z:12,s:.5,t:v=>lvl(v,6.5,5,1)},
+ rt:{n:'Reaksiyon süresi',u:'ms',v:280,a:100,z:1000,s:5,t:v=>lvl(v,350,450)},
+ co2:{n:'Kabin CO2',u:'ppm',v:2500,a:400,z:10000,s:100,t:(v,m)=>lvl(v,m.co2[0],m.co2[1])},
+ onsd:{n:'Optik sinir kılıfı (ONSD)',u:'mm',v:5,a:3,z:8,s:.1,t:v=>lvl(v,5.5,6)},
+ hr:{n:'Kalp atış hızı',u:'bpm',v:72,a:35,z:160,s:1,t:v=>v>110||v<45?3:v>95||v<55?2:0},
+ hrv:{n:'HRV (rMSSD)',u:'ms',v:50,a:5,z:120,s:1,t:v=>lvl(v,30,15,1)},
+ sbp:{n:'Sistolik kan basıncı',u:'mmHg',v:120,a:80,z:200,s:1,t:v=>lvl(v,140,160)},
+ spo2:{n:'SpO2',u:'%',v:97,a:80,z:100,s:1,t:v=>lvl(v,94,90,1)},
+ temp:{n:'Vücut sıcaklığı',u:'°C',v:36.7,a:35,z:40,s:.1,t:v=>lvl(v,37.5,38)},
+ rr:{n:'Solunum hızı',u:'/dk',v:15,a:8,z:35,s:1,t:v=>lvl(v,20,24)},
+ glu:{n:'Kan şekeri',u:'mg/dL',v:95,a:50,z:250,s:1,t:v=>v>180||v<70?3:v>125||v<80?2:0},
+ rad:{n:'Radyasyon (CANS)',u:'mSv/sa',v:.03,a:0,z:1,s:.01,t:(v,m)=>lvl(v,m.rad[0],m.rad[1])},
+ ared:{n:'ARED egzersiz (bugün)',u:'dk',v:60,a:0,z:150,s:5,t:v=>v<30?2:0}};
+const R={
+ head:{n:'Baş ve Beyin (Nöro-Bilişsel)',m:['sleep','rt','co2'],risk:'Sirkadiyen kayma, bilişsel yorgunluk, CO2 narkozu',ins:'Reaksiyon süreniz yavaşladı; 5 dk nefes ve ışık protokolü uygulayın.',cm:'Mavi ışık terapisi, kabin CO2 havalandırma kontrolü, 8 saat uyku'},
+ eyes:{n:'Gözler ve Optik Sinir',m:['onsd'],risk:'SANS (optik disk ödemi, glob düzleşmesi)',ins:'Adım adım kendi kendine göz ultrasonu çekim rehberini izleyin (12 MHz prob).',cm:'Uyluk manşonu (Thigh Cuff), LBNP seansı, B-kompleks takviyesi'},
+ heart:{n:'Kalp ve Damar (Toraks)',m:['hr','hrv','sbp'],risk:'Kardiyovasküler adaptasyon, aritmi, DCS embolisi',ins:'Kan basıncı manşonunu sol kola takın ve 30 sn hareketsiz bekleyin.',cm:'ARED aerobik egzersiz, sıvı/elektrolit yüklemesi, %100 O2 soluma'},
+ lung:{n:'Akciğer ve Bağışıklık',m:['spo2','rr','temp'],risk:'Hipoksi, latent virüs reaktivasyonu, enfeksiyon',ins:'Tükürük örneği kitapçığını kullanın; SpO2 %94 altındaysa maske kontrolü yapın.',cm:'Kabin basınç/O2 ayarı, antiviral protokol, izolasyon ve dinlenme'},
+ msk:{n:'Kas-İskelet ve Kemik İliği',m:['ared','glu','rad'],risk:'Osteopeni, kas atrofisi, insülin direnci, BFO radyasyon',ins:'Kan şekeri sınırdaysa direnç egzersizi ve düşük glisemik öğün seçin.',cm:'Günde 2 saat ARED squat/deadlift, D vitamini, radyasyon sığınağı'}};
+const TASKS=[['water','Günlük su hedefi'],['ared','2 saatlik ARED egzersizi'],['sleep','Uyku hedefi (7+ saat)'],['scan','Ultrason / kan şekeri ölçümü']];
+const BADGES=[[40,'Kalkan Çırağı'],[100,'Bio-Kalkan'],[160,'Vital Komutan']];
+let mode='leo',sel='head',S={xp:0,done:{}},V={};
+Object.keys(M).forEach(k=>V[k]=M[k].v);
+try{const s=JSON.parse(localStorage.getItem('av')||'null');if(s)S=s}catch(e){}
+const $=id=>document.getElementById(id);
+const st=k=>M[k].t(+V[k],MODES[mode]);
+const rst=id=>Math.max(...R[id].m.map(st));
+const fmt=(k,v)=>(M[k].s<1?(+v).toFixed(M[k].s<.05?2:1):Math.round(v))+' '+U(M[k].u);
+
+function build(){
+ $('modes').innerHTML=Object.entries(MODES).map(([k,m])=>`<button data-m="${k}" aria-pressed="${k==mode}">${MN(k)}</button>`).join('');
+ $('modes').querySelectorAll('button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;build();render()});
+ $('modeNote').textContent=MNO(mode);
+ $('metrics').innerHTML=R[sel].m.map(k=>{const d=M[k];return `<div class="m"><label for="i-${k}">${MT(k)}</label><output id="o-${k}"></output><input type="range" id="i-${k}" min="${d.a}" max="${d.z}" step="${d.s}" value="${V[k]}"><span class="pill" id="p-${k}"></span></div>`}).join('');
+ R[sel].m.forEach(k=>$('i-'+k).oninput=e=>{V[k]=+e.target.value;render()});
+ $('tasks').innerHTML=TASKS.map(([k,t],i)=>`<label class="task"><input type="checkbox" data-t="${k}" ${S.done[k]?'checked':''}> ${L=='en'?ENT[i]:t}</label>`).join('');
+ $('tasks').querySelectorAll('input').forEach(c=>c.onchange=()=>{const k=c.dataset.t;if(c.checked&&!S.done[k]){S.xp+=20}else if(!c.checked&&S.done[k]){S.xp=Math.max(0,S.xp-20)}S.done[k]=c.checked;save();render()});
+}
+function save(){try{localStorage.setItem('av',JSON.stringify(S))}catch(e){}}
+function render(){
+ Object.keys(R).forEach(id=>{const e=$('r-'+id);e.style.fill=COL[rst(id)];e.classList.toggle('sel',id==sel)});
+ const r=R[sel],s=rst(sel);
+ $('rName').textContent=RF(sel,0);$('rPill').textContent=LBLX()[s];$('rPill').style.background=COL[s];
+ r.m.forEach(k=>{const o=$('o-'+k);if(!o)return;o.textContent=fmt(k,V[k]);const i=$('i-'+k);if(document.activeElement!==i)i.value=V[k];
+  const p=$('p-'+k);p.textContent=LBLX()[st(k)];p.style.background=COL[st(k)]});
+ $('rRisk').textContent=RF(sel,1);
+ $('rInstr').textContent=s==0?x('Parametreler optimal. Rutin ölçüm takvimine devam edin.','Parameters are optimal. Continue the routine measurement schedule.'):RF(sel,2);
+ $('rCounter').textContent=s==0?x('Önleyici rutin: ','Preventive routine: ')+RF(sel,3):RF(sel,3);
+ const al=$('alert'),ra=st('rad')==3;
+ if(ra||st('spo2')==3){al.style.display='block';
+  al.textContent=ra?(suitState=='demo'&&ph[4]?x('Elbise dozimetresi güneş fırtınası tespit etti: radyasyon sığınağına geçin. İletişim gecikmesinde otonom tanı motoru devrede.','Suit dosimeter detected a solar storm: move to the radiation shelter. The autonomous diagnosis engine is active during the communication delay.'):mode=='deep'?x('Güneş fırtınası uyarısı: radyasyon sığınağına geçin. İletişim gecikmesinde otonom tanı motoru devrede.','Solar storm alert: move to the radiation shelter. The autonomous diagnosis engine is active during the communication delay.'):x('Kritik radyasyon düzeyi: korunaklı alana geçin ve uçuş doktorunu bilgilendirin.','Critical radiation level: move to a shielded area and notify the flight surgeon.')):x('Kritik SpO2: maske ve kabin O2 kontrolü yapın, uçuş doktoruna bildirin.','Critical SpO2: check the mask and cabin O2, notify the flight surgeon.')}
+ else al.style.display='none';
+ $('xpTxt').textContent=x('Biyo-Kalkan Puanı: ','Bio-Shield XP: ')+S.xp;
+ $('xpBar').style.width=Math.min(100,S.xp/160*100)+'%';
+ $('badges').innerHTML=BADGES.map(([n,t],i)=>`<span class="${S.xp>=n?'on':''}">${L=='en'?ENB[i]:t}</span>`).join('');
+ const mp=Math.min(100,31+S.xp*.05);$('marsBar').style.width=mp+'%';$('marsTxt').textContent=x('%'+mp.toFixed(1)+' tamamlandı (demo verisi)',mp.toFixed(1)+'% complete (demo data)');suitTilesUI();linkCheck();
+}
+document.querySelectorAll('.reg').forEach(e=>{const go=()=>{sel=e.dataset.r;build();render()};e.onclick=go;e.onkeydown=ev=>{if(ev.key=='Enter'||ev.key==' '){ev.preventDefault();go()}}});
+
+/* Bio-Monitor simülasyonu */
+let sim=null;
+const walk=(k,d,lo,hi)=>{V[k]=Math.min(hi,Math.max(lo,+V[k]+(Math.random()-.5)*d));};
+$('btnSim').onclick=()=>{
+ if(sim){clearInterval(sim);sim=null;simLbl();return}
+ $('btnSim').textContent=x('Bio-Monitor akışı: açık','Bio-Monitor stream: on');
+ sim=setInterval(()=>{walk('hr',6,55,105);walk('spo2',1.2,94,99);walk('rr',2,12,19);walk('temp',.1,36.4,37.2);walk('hrv',6,35,70);walk('sbp',6,108,132);walk('rad',.01,.01,.06);render()},1000)};
+$('btnSPE').onclick=()=>{V.rad=Math.max(V.rad,MODES[mode].rad[1]+.15);render()};
+
+/* Kamera tabanlı rPPG (deneysel) */
+$('btnCam').onclick=async()=>{
+ const msg=$('camMsg'),vid=$('vid');
+ try{
+  const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});
+  vid.srcObject=stream;vid.style.display='block';await vid.play();
+  const cv=$('cv'),cx=cv.getContext('2d'),pts=[],t0=performance.now();
+  msg.textContent=x('Yüzünüzü ışıkta sabit tutun, 12 sn ölçülüyor...','Hold your face still in good light; measuring for 12 s...');
+  const tick=()=>{
+   const t=performance.now()-t0;
+   cx.drawImage(vid,vid.videoWidth*.3,vid.videoHeight*.25,vid.videoWidth*.4,vid.videoHeight*.4,0,0,48,48);
+   const d=cx.getImageData(0,0,48,48).data;let g=0;for(let i=1;i<d.length;i+=4)g+=d[i];
+   pts.push([t,g/(d.length/4)]);
+   if(t<12000)return requestAnimationFrame(tick);
+   stream.getTracks().forEach(x=>x.stop());vid.style.display='none';
+   const y=pts.map(p=>p[1]),sm=y.map((_,i)=>{let a=0,n=0;for(let j=Math.max(0,i-15);j<=Math.min(y.length-1,i+15);j++){a+=y[j];n++}return a/n}),
+    f=y.map((v,i)=>v-sm[i]);let c=0,last=-1e9;
+   for(let i=2;i<f.length-2;i++)if(f[i]>f[i-1]&&f[i]>=f[i+1]&&f[i]>f[i-2]&&f[i]>f[i+2]&&f[i]>0&&pts[i][0]-last>400){c++;last=pts[i][0]}
+   const bpm=Math.round(c/12*60);
+   if(bpm>=40&&bpm<=160){V.hr=bpm;msg.textContent=x('Tahmini nabız: '+bpm+' bpm (deneysel rPPG).','Estimated heart rate: '+bpm+' bpm (experimental rPPG).');sel='heart';build();render()}
+   else msg.textContent=x('Ölçüm güvenilir değil. Daha iyi ışıkta tekrar deneyin.','Measurement unreliable. Try again in better light.');
+  };tick();
+ }catch(e){msg.textContent=x('Kamera açılamadı. Tarayıcı iznini kontrol edin veya değeri elle girin.','Camera could not be opened. Check browser permission or enter the value manually.')}};
+
+/* Reaksiyon testi */
+let rs='idle',tm,t1,hist=[];
+const rt=$('rt'),rtGo=()=>{
+ if(rs=='idle'){rs='wait';rt.textContent=x('Yeşil olunca tıkla...','Click when it turns green...');rt.style.background='var(--y)';
+  tm=setTimeout(()=>{rs='go';rt.textContent=x('ŞİMDİ','NOW');rt.style.background='var(--g)';t1=performance.now()},1000+Math.random()*2500)}
+ else if(rs=='wait'){clearTimeout(tm);rs='idle';rt.textContent=x('Çok erken. Tekrar dene.','Too early. Try again.');rt.style.background='var(--ln)'}
+ else{const ms=Math.round(performance.now()-t1);hist=[...hist,ms].slice(-3);V.rt=Math.min(1000,Math.max(100,Math.round(hist.reduce((a,b)=>a+b)/hist.length)));
+  rs='idle';rt.style.background='var(--ln)';rt.textContent=x('Bu deneme: '+ms+' ms. Çubuk (son '+hist.length+' ortalaması): '+V.rt+' ms. Tekrar için tıkla.','This try: '+ms+' ms. Bar (average of last '+hist.length+'): '+V.rt+' ms. Click to repeat.');sel='head';build();render()}};
+rt.onclick=rtGo;rt.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();rtGo()}};
+
+let L='tr';try{L=localStorage.getItem('avl')||((navigator.language||'').toLowerCase().startsWith('tr')?'tr':'en')}catch(e){}
+const x=(a,b)=>L=='en'?b:a,LBLE=['Optimal','Routine check','Self-care needed','Critical'],LBLX=()=>L=='en'?LBLE:LBL;
+const U=u=>L=='en'?({sa:'h',dk:'min','/dk':'/min','mSv/sa':'mSv/h'}[u]||u):u;
+const ENM={leo:['Space Station (LEO/ISS, 0 g)','Focuses on SANS, bone loss and microbial monitoring.'],deep:['Deep Space (Orion/Mars transit)','Prioritizes CANS neutron data; triggers shelter alerts during solar storms and activates the autonomous diagnosis engine.'],surf:['Planet/Moon Surface (1/6 g, 3/8 g)','Tracks vestibular adaptation, regolith dust (lungs) and EVA fatigue.'],rover:['Pressurized Rover / EVA','Monitors decompression sickness (DCS), hypoxia (SpO2), in-suit CO2 and EVARM radiation dose in real time.']};
+const ENMT={sleep:'Sleep',rt:'Reaction time',co2:'Cabin CO2',onsd:'Optic nerve sheath (ONSD)',hr:'Heart rate',hrv:'HRV (rMSSD)',sbp:'Systolic blood pressure',spo2:'SpO2',temp:'Body temperature',rr:'Respiratory rate',glu:'Blood glucose',rad:'Radiation (CANS)',ared:'ARED exercise (today)'};
+const ENR={head:['Head and Brain (Neuro-Cognitive)','Circadian shift, cognitive fatigue, CO2 narcosis','Your reaction time has slowed; follow a 5-minute breathing and light protocol.','Blue light therapy, cabin CO2 ventilation check, 8 hours of sleep'],
+eyes:['Eyes and Optic Nerve','SANS (optic disc edema, globe flattening)','Follow the step-by-step self eye ultrasound guide (12 MHz probe).','Thigh cuffs, LBNP session, B-complex supplement'],
+heart:['Heart and Vessels (Thorax)','Cardiovascular adaptation, arrhythmia, DCS embolism','Put the blood pressure cuff on your left arm and stay still for 30 s.','ARED aerobic exercise, fluid/electrolyte loading, 100% O2 breathing'],
+lung:['Lungs and Immunity','Hypoxia, latent virus reactivation, infection','Use the saliva sample kit; if SpO2 is below 94%, check the mask.','Cabin pressure/O2 adjustment, antiviral protocol, isolation and rest'],
+msk:['Musculoskeletal and Bone Marrow','Osteopenia, muscle atrophy, insulin resistance, BFO radiation','If glucose is borderline, choose resistance exercise and a low-glycemic meal.','2 h/day ARED squat/deadlift, vitamin D, radiation shelter']};
+const ENT=['Daily water goal','2-hour ARED exercise','Sleep goal (7+ hours)','Ultrasound / blood glucose measurement'],ENB=['Shield Apprentice','Bio-Shield','Vital Commander'];
+const MN=k=>L=='en'?ENM[k][0]:MODES[k].n,MNO=k=>L=='en'?ENM[k][1]:MODES[k].note,MT=k=>L=='en'?ENMT[k]:M[k].n;
+const RF=(id,i)=>L=='en'?ENR[id][i]:[R[id].n,R[id].risk,R[id].ins,R[id].cm][i];
+const simLbl=()=>{$('btnSim').textContent=sim?x('Bio-Monitor akışı: açık','Bio-Monitor stream: on'):x('Bio-Monitor akışı: kapalı','Bio-Monitor stream: off')};
+const ST=[['h1 small',['Multi-modal digital twin and decision support for astronaut health']],['main h2:not(#rName)',['Digital twin','Data input','Wearable control suit','Emergency downlink to Earth','Mission Readiness Shield']],['.legend span',['Optimal','Routine check','Self-care','Critical']],['.info b',['Space risk:','Instruction:','Countermeasure:']],['#btnSPE',['Simulate solar storm']],['#btnCam',['Heart rate via camera (rPPG)']],['#marsLbl',['Earth-to-Mars Collective Milestone (anonymous team progress)']],['p.fine',['Educational and competition prototype; not a medical device. Thresholds and radiation data are for simulation only and do not replace diagnosis or treatment.']],['#suitNote',['Supports standard Bluetooth health services (heart rate, temperature, SpO2). Requires Chrome/Edge (desktop and Android) and https.']],['#rtMsg',['Reaction time is used as a passive neuro-cognitive indicator.']]];
+ST.forEach(([q])=>document.querySelectorAll(q).forEach(e=>e.dataset.tr=e.textContent));
+function applyLang(){document.documentElement.lang=L;$('lang').textContent=L=='tr'?'EN':'TR';
+ ST.forEach(([q,a])=>document.querySelectorAll(q).forEach((e,i)=>e.textContent=L=='en'?a[i]:e.dataset.tr));
+ simLbl();suitUI();linkStatic();linkUI();if(rs=='idle'&&!hist.length)rt.textContent=x('Reaksiyon testi için tıkla','Click for reaction test');
+ $('camMsg').textContent='';docUI();build();render()}
+$('lang').onclick=()=>{L=L=='tr'?'en':'tr';try{localStorage.setItem('avl',L)}catch(e){}applyLang()};
+let suit=null,demo=null,suitState='off',suitName='',rrb=[];
+const PH=[[15,'Normal','Normal',{hr:72,hrv:55,spo2:97,temp:36.7,rr:15,rad:.03}],
+[28,'Egzersiz stresi','Exercise stress',{hr:104,hrv:28,spo2:94,temp:37.7,rr:22,rad:.03}],
+[38,'Kritik olay','Critical event',{hr:118,hrv:18,spo2:89,temp:38.1,rr:26,rad:.03}],
+[55,'Güneş fırtınası','Solar storm',{hr:96,hrv:32,spo2:96,temp:36.9,rr:19,rad:.8},1],
+[75,'Toparlanma','Recovery',{hr:80,hrv:48,spo2:97,temp:36.8,rr:16,rad:.03}]];
+let t0=0,pk=0,pkT=new Date(),ph=PH[0];
+const tickPk=()=>{pk++;pkT=new Date()};
+const demoTick=()=>{const t=((Date.now()-t0)/1000)%75;ph=PH.find(q=>t<q[0]);
+ Object.entries(ph[3]).forEach(([k,g])=>{V[k]=Math.min(M[k].z,Math.max(M[k].a,+V[k]+(g-V[k])*.25+(Math.random()-.5)*M[k].s*2))});tickPk();render()};
+const TL=[['hr','Nabız','Heart rate'],['hrv','HRV','HRV'],['spo2','SpO2','SpO2'],['temp','Ateş','Temp.'],['rr','Solunum','Resp.'],['rad','Radyasyon','Radiation']];
+const suitTilesUI=()=>{const on=suitState!='off';$('suitLive').hidden=!on;if(!on)return;
+ $('suitTiles').innerHTML=TL.map(([k,a,b])=>`<div class="tile" style="border-color:${COL[st(k)]}"><span>${x(a,b)}</span><b>${fmt(k,V[k])}</b></div>`).join('');
+ $('suitMeta').innerHTML=`<i class="beat" style="animation-duration:${(60/Math.max(30,V.hr)).toFixed(2)}s"></i>`+(suitState=='demo'?x(ph[1],ph[2])+' · ':'')+x('Paket','Packets')+': '+pk+' · '+x('Son','Last')+': '+pkT.toLocaleTimeString()};
+const sm=t=>{$('suitMsg').textContent=t};
+const setV=(k,v)=>{V[k]=Math.min(M[k].z,Math.max(M[k].a,v));tickPk();render()};
+const suitUI=()=>{const on=suitState!='off';
+ $('suitPill').textContent=on?x('Bağlı: '+suitName,'Connected: '+suitName):x('Bağlı değil','Not connected');
+ $('suitPill').style.background=on?'var(--g)':'var(--mu)';
+ $('btnSuit').textContent=suitState=='ble'?x('Bağlantıyı kes','Disconnect'):x('Elbiseyi bağla (Bluetooth)','Connect suit (Bluetooth)');
+ $('btnSuitDemo').textContent=suitState=='demo'?x('Demo elbiseyi durdur','Stop demo suit'):x('Demo elbise','Demo suit');suitTilesUI()};
+const stopDemo=()=>{if(demo){clearInterval(demo);demo=null}if(suitState=='demo')suitState='off'};
+$('btnSuitDemo').onclick=()=>{
+ if(suitState=='demo'){stopDemo();suitUI();sm('');return}
+ if(suitState=='ble')return sm(x('Önce Bluetooth bağlantısını kesin.','Disconnect Bluetooth first.'));
+ suitName='ORBIT-SUIT (demo)';suitState='demo';suitUI();sm(x('Demo senaryo (75 sn döngü): normal, egzersiz stresi, kritik olay, güneş fırtınası, toparlanma.','Demo scenario (75 s loop): normal, exercise stress, critical event, solar storm, recovery.'));
+ t0=Date.now();demoTick();demo=setInterval(demoTick,1000)};
+const sflt=r=>{let m=r&4095,e=r>>12;if(m>=2048)m-=4096;if(e>=8)e-=16;return m*Math.pow(10,e)};
+const pHR=dv=>{const f=dv.getUint8(0);let i=1,h;if(f&1){h=dv.getUint16(i,true);i+=2}else{h=dv.getUint8(i);i++}
+ if(f&8)i+=2;if(f&16)while(i+1<dv.byteLength){rrb.push(dv.getUint16(i,true)/1.024);i+=2}
+ rrb=rrb.slice(-30);if(rrb.length>5){let q=0;for(let j=1;j<rrb.length;j++)q+=Math.pow(rrb[j]-rrb[j-1],2);setV('hrv',Math.round(Math.sqrt(q/(rrb.length-1))))}
+ setV('hr',h)};
+const pTemp=dv=>{const f=dv.getUint8(0),raw=dv.getUint32(1,true);let m=raw&16777215;if(m&8388608)m-=16777216;let t=m*Math.pow(10,raw>>24);if(f&1)t=(t-32)/1.8;setV('temp',Math.round(t*10)/10)};
+const pPlx=dv=>setV('spo2',Math.round(sflt(dv.getUint16(1,true))));
+$('btnSuit').onclick=async()=>{
+ if(suitState=='ble'){try{suit.gatt.disconnect()}catch(e){}return}
+ if(!navigator.bluetooth)return sm(x('Bu tarayıcı Web Bluetooth desteklemiyor. Chrome veya Edge (bilgisayar/Android) kullanın.','This browser does not support Web Bluetooth. Use Chrome or Edge (desktop/Android).'));
+ try{stopDemo();
+  suit=await navigator.bluetooth.requestDevice({filters:[{services:['heart_rate']}],optionalServices:['health_thermometer','pulse_oximeter']});
+  suit.addEventListener('gattserverdisconnected',()=>{suitState='off';suitUI();sm(x('Bağlantı koptu.','Connection lost.'))});
+  const srv=await suit.gatt.connect();suitName=suit.name||'BLE';suitState='ble';rrb=[];suitUI();
+  const sub=async(a,b,fn)=>{try{const c=await(await srv.getPrimaryService(a)).getCharacteristic(b);c.addEventListener('characteristicvaluechanged',e=>fn(e.target.value));await c.startNotifications();return 1}catch(e){return 0}};
+  const got=[await sub('heart_rate','heart_rate_measurement',pHR),await sub('health_thermometer','temperature_measurement',pTemp),await sub('pulse_oximeter','plx_continuous_measurement',pPlx)];
+  const tr=['nabız/HRV','ateş','SpO2'],en=['heart rate/HRV','temperature','SpO2'];
+  sm(x('Veri akışı başladı: '+tr.filter((_,i)=>got[i]).join(', '),'Streaming: '+en.filter((_,i)=>got[i]).join(', ')))
+ }catch(e){suitState='off';suitUI();sm(e.name=='NotFoundError'?x('Cihaz seçilmedi.','No device selected.'):x('Bağlanılamadı. Elbisenin açık ve yakın olduğundan emin olun.','Could not connect. Make sure the suit is on and nearby.'))}};
+
+const DOC=[
+['Projenin amacı','Project purpose',
+'<p>Uzun süreli uzay görevlerinde radyasyon, mikrogravite, yüksek CO2 ve izolasyon gibi tehlikeler organları tek tek değil, birbirini etkileyerek zorlar. Tek organa odaklanan yazılımlar bu çapraz etkileşimi kaçırır.</p><p>ORBIT-VITAL, astronotun sağlığını tek ekranda gösteren bütüncül bir dijital ikiz ve karar destek prototipidir. Amaç, Dünya ile iletişimin geciktiği görevlerde astronota anlaşılır uyarı, talimat ve karşı tedbir sunmaktır.</p>',
+'<p>On long-duration missions, hazards such as radiation, microgravity, high CO2 and isolation stress organs together, not one by one. Software that focuses on a single organ misses these cross-effects.</p><p>ORBIT-VITAL is a holistic digital twin and decision-support prototype that shows an astronaut’s health on one screen. Its goal is to give clear warnings, instructions and countermeasures when communication with Earth is delayed.</p>'],
+['Ekip üyeleri','Team members',
+'<p><b>Süleyman Yasin TEKİN</b><br>Kurucu</p>',
+'<p><b>Süleyman Yasin TEKİN</b><br>Founder</p>'],
+['Nasıl çalışır','How it works',
+'<ol><li>Veri girilir: elle, simüle akışla, kameradan, reaksiyon testiyle veya giyilebilir elbiseden.</li><li>Her ölçüm, seçili görev ortamının eşiklerine göre değerlendirilir.</li><li>İnsan figüründeki her bölge, kendi ölçümlerinin en kötüsüne göre boyanır.</li><li>Bölgeye tıklayınca uzay riski, kısa talimat ve karşı tedbir görünür.</li><li>Kritik radyasyon veya SpO2 değerinde ekranın üstünde alarm çıkar.</li></ol>',
+'<ol><li>Data is entered manually, from a simulated stream, by camera, by reaction test or from the wearable suit.</li><li>Each measurement is judged against the thresholds of the selected mission environment.</li><li>Each body region is colored by the worst of its own measurements.</li><li>Clicking a region shows its space risk, a short instruction and a countermeasure.</li><li>A critical radiation or SpO2 value raises an alarm at the top of the screen.</li></ol>'],
+['Veri giriş katmanları','Data input layers',
+'<ul><li><b>Elle giriş:</b> her bölgedeki kaydırıcılar.</li><li><b>Bio-Monitor simülasyonu:</b> nabız, SpO2, ateş, radyasyon akışı.</li><li><b>Kamera (rPPG):</b> yüz renk değişiminden deneysel nabız tahmini.</li><li><b>Reaksiyon testi:</b> tepki süresiyle pasif bilişsel yorgunluk göstergesi.</li><li><b>Giyilebilir elbise:</b> Bluetooth ile nabız, HRV, ateş ve SpO2 gelir ve elbise kartında canlı kutularda görünür; elbise yoksa güneş fırtınası radyasyon alarmını da içeren demo senaryosu.</li></ul>',
+'<ul><li><b>Manual entry:</b> sliders in each region.</li><li><b>Bio-Monitor simulation:</b> heart rate, SpO2, temperature and radiation stream.</li><li><b>Camera (rPPG):</b> experimental heart rate estimate from facial color change.</li><li><b>Reaction test:</b> passive cognitive-fatigue indicator from response time.</li><li><b>Wearable suit:</b> heart rate, HRV, temperature and SpO2 arrive over Bluetooth and appear in live tiles on the suit card; a demo scenario, including a solar-storm radiation alarm, if no suit is available.</li></ul>'],
+['Acil veri hattı','Emergency downlink',
+'<p>Dünya ile iletişim uzak mesafelerde yavaş ve kesintilidir; bu yüzden tüm telemetri gönderilmez. Yalnızca <b>kritik (kırmızı)</b> değerler, küçük bir pakete konur ve en öncelikli olandan (radyasyon, SpO2, nabız…) başlayarak Dünya Merkezi’ne gönderilir.</p><ul><li>Bir değer kritik olunca paket otomatik oluşur.</li><li>Bağlantı kesilirse paketler kuyrukta bekler, bağlantı gelince gider (sakla ve ilet).</li><li>Ay, Mars en yakın ve Mars en uzak gecikmeleri seçilebilir; her paket için iletim ve onay (ACK) durumu görünür.</li><li>Tam telemetriye göre kaç bayt tasarruf edildiği hesaplanır.</li></ul><p>Bu hat simülasyondur; gerçek bir Dünya bağlantısı yoktur.</p>',
+'<p>Communication with Earth is slow and intermittent at long distances, so full telemetry is not sent. Only <b>critical (red)</b> values are packed into a small packet and sent to Earth Control, highest priority first (radiation, SpO2, heart rate…).</p><ul><li>A packet is created automatically when a value turns critical.</li><li>If the link drops, packets wait in a queue and go out when it returns (store and forward).</li><li>Moon, Mars closest and Mars farthest delays can be selected; each packet shows its transmit and acknowledgment (ACK) status.</li><li>The bytes saved compared with full telemetry are calculated.</li></ul><p>This link is a simulation; there is no real connection to Earth.</p>'],
+['Renk kodlaması','Color coding',
+'<ul><li><b>Yeşil:</b> optimal.</li><li><b>Sarı:</b> hafif sapma, öz-bakım gerekli.</li><li><b>Kırmızı:</b> kritik eşik, acil müdahale ve uçuş doktoru uyarısı.</li><li><b>Mavi:</b> rutin ölçüm zamanı. Ölçüm hatırlatıcısı için ayrılmıştır, bu sürümde otomatik atanmaz.</li></ul>',
+'<ul><li><b>Green:</b> optimal.</li><li><b>Yellow:</b> mild deviation, self-care needed.</li><li><b>Red:</b> critical threshold, urgent action and flight surgeon alert.</li><li><b>Blue:</b> routine measurement due. Reserved for measurement reminders; not assigned automatically in this version.</li></ul>'],
+['Görev ortamı modları','Mission environment modes',
+'<ul><li><b>Uzay İstasyonu (LEO):</b> SANS, kemik kaybı, mikrobiyal takip.</li><li><b>Derin uzay:</b> nötron radyasyonu, güneş fırtınası sığınak alarmı.</li><li><b>Ay/Mars yüzeyi:</b> vestibüler adaptasyon, toz, EVA yorgunluğu.</li><li><b>Rover/EVA:</b> dekompresyon hastalığı, hipoksi, kıyafet içi CO2.</li></ul><p>Mod değişince radyasyon ve CO2 eşikleri de değişir.</p>',
+'<ul><li><b>Space Station (LEO):</b> SANS, bone loss, microbial monitoring.</li><li><b>Deep space:</b> neutron radiation, solar-storm shelter alert.</li><li><b>Moon/Mars surface:</b> vestibular adaptation, dust, EVA fatigue.</li><li><b>Rover/EVA:</b> decompression sickness, hypoxia, in-suit CO2.</li></ul><p>Radiation and CO2 thresholds change with the mode.</p>'],
+['Oyunlaştırma','Gamification',
+'<p>Günlük su, 2 saatlik ARED egzersizi, uyku hedefi ve ultrason/kan şekeri ölçümü tamamlandıkça Biyo-Kalkan puanı ve rozetler kazanılır. Sağlık protokollerine uyumu artırmak ve uzun görevlerdeki monotonluğu kırmak hedeflenir. “Mars’a Kadar Yürüyüş” çubuğu anonim ekip ilerlemesini gösteren demo verisidir.</p>',
+'<p>Completing daily water, 2-hour ARED exercise, the sleep goal and ultrasound/glucose measurement earns Bio-Shield XP and badges. The aim is to improve adherence to health protocols and break the monotony of long missions. The “Earth-to-Mars” bar is demo data showing anonymous team progress.</p>'],
+['Bilimsel dayanak','Scientific basis',
+'<p>Tasarım, NASA İnsan Araştırma Programı’nın beş tehlike çerçevesine dayanır: radyasyon, izolasyon ve kapalı kalma, Dünya’dan uzaklık, yer çekimi alanları ve düşmanca/kapalı ortamlar. Veri yapısı, CSA Bio-Monitor giyilebilir sistemi ve CANS nötron spektrometresi verilerini simüle edebilecek şekilde kurgulanmıştır.</p>',
+'<p>The design builds on the five hazards of NASA’s Human Research Program: radiation, isolation and confinement, distance from Earth, gravity fields, and hostile/closed environments. The data model is built so it can simulate CSA Bio-Monitor wearable and CANS neutron spectrometer data.</p>'],
+['Sınırlamalar','Limitations',
+'<ul><li>Eğitim ve yarışma prototipidir; tıbbi cihaz değildir.</li><li>Eşikler genel referanslara göre basitleştirilmiştir, tanı veya tedavi yerine geçmez.</li><li>Radyasyon ve Bio-Monitor akışı simülasyondur.</li><li>Kamera nabzı deneyseldir; ışık ve harekete duyarlıdır.</li><li>Elbise bağlantısı standart Bluetooth sağlık servislerini kullanır.</li><li>Dünya’ya acil veri hattı simülasyondur; gerçek iletişim kurmaz.</li><li>Radyasyon alarmı yalnızca demo elbise senaryosunda çalışır; standart Bluetooth servisleri radyasyon verisi taşımaz.</li><li>Veriler yalnızca tarayıcıda işlenir, sunucuya gönderilmez.</li></ul>',
+'<ul><li>This is an educational and competition prototype, not a medical device.</li><li>Thresholds are simplified from general references and do not replace diagnosis or treatment.</li><li>Radiation and Bio-Monitor streams are simulated.</li><li>Camera heart rate is experimental and sensitive to light and motion.</li><li>The suit connection uses standard Bluetooth health services.</li><li>The emergency downlink is a simulation and makes no real communication.</li><li>The radiation alarm works only in the demo suit scenario; standard Bluetooth services do not carry radiation data.</li><li>Data is processed only in the browser and is never sent to a server.</li></ul>'],
+['Yol haritası','Roadmap',
+'<ul><li>Rapordaki 7 bölgeli tıklanabilir figür.</li><li>Göz ve kalp ultrason görüntüleri için CNN analizi.</li><li>Gerçek CSA Bio-Monitor ve CANS veri akışı.</li><li>İletişim gecikmesinde çalışan otonom tanı motoru.</li><li>Çok kullanıcılı ekip paneli ve veri geçmişi.</li><li>Elbiseye dozimetre (radyasyon sensörü) entegrasyonu.</li><li>Gerçek iletişim için gecikmeye dayanıklı ağ (DTN) protokolü.</li></ul>',
+'<ul><li>The 7-region clickable figure from the report.</li><li>CNN analysis for eye and heart ultrasound images.</li><li>Real CSA Bio-Monitor and CANS data streams.</li><li>An autonomous diagnosis engine for communication delays.</li><li>A multi-user crew dashboard and data history.</li><li>Dosimeter (radiation sensor) integration for the suit.</li><li>A delay-tolerant networking (DTN) protocol for real communication.</li></ul>']];
+const docUI=()=>{$('docBody').innerHTML=DOC.map((d,i)=>`<details${i?'':' open'}><summary>${x(d[0],d[1])}</summary>${x(d[2],d[3])}</details>`).join('');
+ $('docTitle').textContent=x('Proje hakkında','About the project');
+ $('menuBtn').setAttribute('aria-label',x('Proje hakkında menüsü','About the project menu'));$('docClose').setAttribute('aria-label',x('Kapat','Close'))};
+const tgl=o=>{$('drawer').classList.toggle('open',o);$('ovl').classList.toggle('open',o);$('menuBtn').setAttribute('aria-expanded',o);$('drawer').setAttribute('aria-hidden',!o);(o?$('docClose'):$('menuBtn')).focus()};
+$('menuBtn').onclick=()=>tgl(true);$('docClose').onclick=()=>tgl(false);$('ovl').onclick=()=>tgl(false);
+document.addEventListener('keydown',e=>{if(e.key=='Escape'&&$('drawer').classList.contains('open'))tgl(false)});
+
+const LINKS=[['Ay (1,3 sn)','Moon (1.3 s)',1.3],['Mars en yakın (3 dk)','Mars closest (3 min)',180],['Mars en uzak (22 dk)','Mars farthest (22 min)',1320]];
+const PRI=['rad','spo2','hr','sbp','temp','rr','glu','onsd','hrv','rt','co2','sleep','ared'];
+let link=1,blackout=false,fast=true,Q=[],pid=0,sentB=0,fullB=0,prevK=[];
+const bl=t=>new TextEncoder().encode(t).length;
+const fullBytes=()=>bl(JSON.stringify(Object.fromEntries(Object.keys(V).map(k=>[k,+(+V[k]).toFixed(2)]))));
+const enq=ks=>{const txt='OV1|'+(++pid)+'|'+mode+'|'+ks.map(k=>k+'='+(+V[k]).toFixed(M[k].s<1?1:0)).join(';');
+ Q.push({id:pid,txt,bytes:bl(txt),full:fullBytes(),s:'q',at:0,d:0});if(Q.length>30)Q.shift();linkUI()};
+const linkCheck=()=>{const ks=PRI.filter(k=>st(k)==3);if(ks.some(k=>!prevK.includes(k)))enq(ks);prevK=ks};
+const dMs=()=>LINKS[link][2]*1000/(fast?60:1);
+const linkLoop=()=>{const n=Date.now();Q.forEach(p=>{
+ if(p.s=='q'&&!blackout){p.s='tx';p.at=n;p.d=dMs()}
+ if(p.s=='tx'&&n-p.at>=p.d){p.s='rx';p.at=n;sentB+=p.bytes;fullB+=p.full}
+ if(p.s=='rx'&&n-p.at>=p.d)p.s='ack'});linkUI()};
+const linkStatic=()=>{$('lkSelL').textContent=x('Bağlantı mesafesi (tek yön gecikme)','Link distance (one-way delay)');
+ $('lkSel').innerHTML=LINKS.map((l,i)=>`<option value="${i}"${i==link?' selected':''}>${x(l[0],l[1])}</option>`).join('');
+ $('lkBlkL').textContent=x('Bağlantı kesintisi simüle et (paketler kuyrukta bekler)','Simulate link blackout (packets wait in queue)');
+ $('lkFastL').textContent=x('Demo hızı: gecikmeleri 60 kat kısalt','Demo speed: shorten delays 60x');
+ $('lkSend').textContent=x('Acil paketi şimdi gönder','Send emergency packet now');
+ $('lkNote').textContent=x('Yalnızca kritik (kırmızı) değerler küçük bir pakette Dünya Merkezi’ne gönderilir. Rutin veriler gönderilmez.','Only critical (red) values are sent to Earth Control in a tiny packet. Routine data is not sent.')};
+const lab=p=>{const r=Math.max(0,Math.ceil((p.at+p.d-Date.now())/1000));
+ return p.s=='q'?(blackout?x('Bağlantı bekleniyor','Waiting for link'):x('Kuyrukta','Queued')):p.s=='tx'?x('İletiliyor, kalan '+r+' sn','Transmitting, '+r+' s left'):p.s=='rx'?x('Merkeze ulaştı, onay yolda','Reached Earth Control, ACK on the way'):x('Merkez onayladı (ACK)','Earth Control acknowledged (ACK)')};
+const linkUI=()=>{const sv=fullB?Math.round((1-sentB/fullB)*100):0;
+ $('lkStat').textContent=x('Gönderilen: ','Sent: ')+sentB+' B · '+x('tam telemetri olsaydı: ','full telemetry would be: ')+fullB+' B · '+x('tasarruf: %'+sv,'saved: '+sv+'%');
+ $('lkLog').innerHTML=Q.slice(-5).reverse().map(p=>`<div class="pk"><b>#${p.id}</b> · ${p.bytes} B · ${lab(p)}<code>${p.txt}</code></div>`).join('')||`<div class="fine">${x('Henüz acil paket yok.','No emergency packets yet.')}</div>`};
+$('lkSel').onchange=e=>{link=+e.target.value};
+$('lkBlk').onchange=e=>{blackout=e.target.checked;linkUI()};
+$('lkFast').onchange=e=>{fast=e.target.checked};
+$('lkSend').onclick=()=>{const ks=PRI.filter(k=>st(k)==3);if(!ks.length){$('lkNote').textContent=x('Şu an kritik değer yok; gönderilecek acil paket yok.','No critical value right now; no emergency packet to send.');setTimeout(linkStatic,3000);return}enq(ks)};
+setInterval(linkLoop,1000);
+
+applyLang();
+</script>
+</body>
+</html>
